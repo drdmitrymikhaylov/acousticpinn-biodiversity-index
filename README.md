@@ -86,9 +86,9 @@ than reaching for Shannon.
 silent one by one, Pielou's J *rises* from 0.839 to 0.946. That is not a bug in this
 implementation — it is what J does, because its denominator is the number of species
 you still detect. Anyone putting evenness inside a conservation metric should know
-that losing rare species improves that term. Here richness outweighs it and the
-composite still falls correctly, but the tension is real and it is drawn rather than
-hidden.
+that losing rare species improves that term. End to end, richness outweighs it and
+the composite falls from 0.724 to 0.457 — but only end to end. Step by step it does
+something worse, and the next section is about that.
 
 **The index can be faked by weather.** This is the uncomfortable one.
 
@@ -103,6 +103,45 @@ at once: richness up, evenness up, stability up.
 24-species forest** (0.730 against 0.724). Nothing about the index protects it. The
 protection has to come from the classifier in front of it — which is the other half
 of this repository.
+
+## Where the index gets it wrong first
+
+The species-loss panel above reads correctly end to end. Read one step at a time,
+from the same 3,000-community run, it does not. Mean over 40 communities per level;
+the last column counts the communities in which the index is *higher* than it was
+for that same community intact.
+
+| species left | ABI | richness | evenness | stability | communities scored above intact |
+|---|---|---|---|---|---|
+| 24 (intact) | 0.724 | 1.000 | 0.839 | 0.458 | — |
+| 23 | 0.734 | 0.958 | 0.848 | 0.490 | 26 / 40 |
+| 21 | **0.742** | 0.875 | 0.859 | 0.546 | 31 / 40 |
+| 18 | 0.735 | 0.750 | 0.876 | 0.604 | 24 / 40 |
+| 16 | 0.721 | 0.667 | 0.886 | 0.634 | 14 / 40 |
+| 12 | 0.678 | 0.500 | 0.905 | 0.688 | 5 / 40 |
+| 3 | 0.457 | 0.125 | 0.946 | 0.806 | 0 / 40 |
+
+**Silencing the three rarest species raises the index**, from 0.724 to a peak of
+0.742 at 21 species, and it does not fall back below its intact value until **eight
+species are gone**. A forest that has lost a third of what it had scores the same as
+the forest it used to be. Full table in
+[`results/species_loss_levels.json`](results/species_loss_levels.json).
+
+Evenness is only half the reason. The other half is the component this repository
+was proudest of. Stability is 1 minus the mean coefficient of variation across the
+species present, and a Poisson count at rate μ has a coefficient of variation near
+1/√μ — so the rarest species are the noisiest by construction. In the intact
+community the three commonest species have CV 0.16–0.22 and the three rarest have
+0.96–1.41. Remove the rare ones and the mean CV of what is left drops from 0.54 to
+0.36. **The stability term penalises a species for being rare, not for being
+bursty**, and a component that rewards the disappearance of rare species is not one a
+conservation index can carry unchanged. Weighting each species' CV by its abundance,
+or computing stability on the pooled detection stream rather than per species, are
+the two obvious repairs; neither is implemented here, because this page reports what
+the index does, not what a better one would do.
+
+The arithmetic mean, for the record, is worse on both counts: it moves from 0.766
+intact to 0.626 at three species, a drop of 0.14 for the loss of 21 of 24 species.
 
 ---
 
@@ -161,6 +200,9 @@ enough to make a depleted forest outscore an intact one.
   classifier for African woodland.
 - **The saw detector is 80 positives.** Enough to show the signal is strong and easy;
   not enough to set an operating threshold for a deployment.
+- **The index is blind to the first eight species lost.** Shown above, not fixed
+  above. Until the stability term stops confusing rarity with burstiness, a falling
+  ABI means something and a flat one does not.
 - **Contamination is modelled as clean extra "species".** Real leakage is messier and
   probably worse: a classifier confusing rain for an insect chorus will produce
   detections correlated with weather, not the steady independent stream simulated
