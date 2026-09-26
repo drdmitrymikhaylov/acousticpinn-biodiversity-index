@@ -22,6 +22,10 @@ each one breaks.
 
 ---
 
+## From the forest to this page
+
+In December 2023 we put a recorder into the Chirundu forest in Zimbabwe for a month, on a 320,000-hectare reserve, together with the University of Maryland. From that forest came a new measure, the Acoustic Biodiversity Index, presented in April 2025 (*Leveraging Acoustic Monitoring and AI for Comprehensive Biodiversity Assessment in Zimbabwe*, OpenReview; doi:10.5281/zenodo.22736560). This repository turns the index into code and stress-tests it until it is ready for any forest.
+
 ## Results table
 
 Everything measured in this repository, in one place. The sections below explain
