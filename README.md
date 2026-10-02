@@ -42,12 +42,13 @@ Five official ESC-50 folds, three seeds, fifteen runs, mean ± standard deviatio
 
 | scenario (3,000 synthetic communities) | what moves | from | to |
 |---|---|---|---|
-| community going quiet, same species and totals | Shannon | 2.688 | 2.686 |
+| community going quiet, same species and totals | Shannon | 2.686 | 2.688 |
 | | Simpson | 0.901 | 0.901 |
 | | ABI | 0.729 | 0.000 |
 | rarest species fall silent, 24 to 3 species | Pielou's J | 0.839 | 0.946 |
 | | ABI, end to end | 0.724 | 0.457 |
 | | ABI, peak on the way down (21 species) | 0.724 | 0.742 |
+| | same step with stability weighted by abundance (measured, not adopted) | 0.837 | 0.811 |
 | 12-species site plus 7 unfiltered noise sources | ABI vs a real 24-species forest | 0.724 | 0.730 |
 
 ---
@@ -58,7 +59,7 @@ M. Saeed, M. H. Alhosani, Y. F. Al Wahedi, **D. Mikhaylov**, M. Brown.
 *Leveraging Acoustic Monitoring and AI for Comprehensive Biodiversity Assessment in
 Zimbabwe.* Abu Dhabi Maritime Academy · University of Maryland.
 
-A Wildlife Acoustics Song Meter SM4 ran for a month (December 2023) in the Chirundu
+An autonomous acoustic recorder ran for a month (December 2023) in the Chirundu
 forest, inside a ~320,000-hectare conservation area managed by the My Trees Trust. It
 collected 1.7 GB of audio. A CNN trained on the Rainforest Connection species set
 (24 bird and frog species, 4,727 training and 1,992 test samples) was applied to the
@@ -106,7 +107,7 @@ Three things come out of this, and only one of them is comfortable.
 
 **Temporal stability earns its place.** In the third panel the same species are
 present at the same totals, but their detections clump into fewer and fewer windows.
-This is a community going quiet. Shannon moves from 2.688 to 2.686. Simpson moves
+This is a community going quiet. Shannon moves from 2.686 to 2.688. Simpson moves
 from 0.901 to 0.901. Neither classical index can see it at all, because neither looks
 at time. ABI falls from 0.729 to 0.000. This is the case that justifies a new index
 rather than reaching for Shannon.
@@ -166,11 +167,84 @@ stability term penalises a species for being rare, not for being bursty.** A
 component that rewards the disappearance of rare species is not one a conservation
 index can carry unchanged. Two obvious repairs exist: weight each species' CV by its
 abundance, or compute stability on the pooled detection stream rather than per
-species. Neither is implemented here, because this page reports what the index does,
-not what a better one would do.
+species. Neither is part of the index here, because this page reports what the index
+does, not what a better one would do. Both were measured on 2 October 2026, in
+the next section.
 
 The arithmetic mean, for the record, is worse on both counts. It moves from 0.766
 intact to 0.626 at three species, a drop of 0.14 for the loss of 21 of 24 species.
+
+## The two repairs, measured
+
+The section above names two repairs of the stability term and tries neither. On
+2 October 2026 both were run on the same 3,000 communities, draw for draw, and
+scored next to the published term
+([`results/stability_repairs.json`](results/stability_repairs.json)). The script
+first checks that the published term reproduces the September numbers exactly.
+
+- **weighted**: 1 minus the sum of p_i x CV_i, each species' coefficient of
+  variation weighted by its share of the detections
+- **pooled**: 1 minus the CV of the pooled stream, all species summed per window
+
+| test | published term | weighted | pooled |
+|---|---|---|---|
+| species lost before the mean index falls | 8 | 1 | 1 |
+| communities scored above intact with 3 species gone | 31 / 40 | 0 / 40 | 0 / 40 |
+| ABI, 24 species to 3 | 0.724 to 0.457 | 0.837 to 0.459 | 0.920 to 0.473 |
+| stability term, 24 species to 3 | 0.458 to 0.806 | 0.701 to 0.818 | 0.929 to 0.896 |
+| going quiet, steady to most clumped | 0.729 to 0.000 | 0.839 to 0.000 | 0.922 to 0.330 |
+| going quiet, half-way (clumping 0.5) | 0.022 | 0.312 | 0.841 |
+| noise sources for the 12-species site to outscore the forest | 7 | 11 | 10 |
+| one species from 5 % to 95 % of detections | 0.868 to 0.000 | 0.869 to 0.455 | 0.976 to 0.468 |
+
+**Both repairs close the blind spot.** With either, the mean index falls from the
+first species lost and keeps falling at each of the 21 steps. With three species
+gone, no community scores above its intact self (31 of 40 did). With one gone,
+2 of 40 still do under the weighted term and none under the pooled one.
+
+**The pooled repair pays with the property that justified the index.** When each
+species' detections clump into fewer windows, a stream summed over 24 species
+averages the clumps away. Half-way down the scenario the published index has lost
+97 % of its value and the pooled one 9 %. At the most clumped level it still reads
+0.330, 36 % of its steady value, where the other two read zero. A term that sees
+species loss and cannot see a community going quiet has swapped one blindness for
+another.
+
+**The weighted repair keeps that property, later.** It also reaches zero, but it
+drops below half its steady value at clumping 0.5 where the published term
+crosses at 0.7.
+
+**Neither repair protects against contamination.** Seven noise sources become
+eleven and ten (0.851 against 0.837, and 0.922 against 0.920). The clean
+12-species site already earns 79 % of the forest's score under the published term,
+78 % and 77 % under the repairs. Loud steady sources flatter a weighted term as
+well as an unweighted one. The protection still has to come from the classifier.
+
+**Both repairs lose the collapse under dominance, because it came from the same
+flaw.** With one species at 95 % of the detections the published index reads
+0.000. It does so because the other 23 species are rare and therefore count as
+unstable, which is the rarity penalty again. Take the penalty out and evenness
+alone (J = 0.11) has to carry the case, and the geometric mean of a full
+richness, a healthy stability and 0.11 is still 0.46. A site that is one species
+keeps 52 % and 48 % of the score of an even community.
+
+So the weighted term is the better of the two, and it is not free. It fixes the
+species-order failure, keeps the response to a community going quiet, does
+nothing for contamination, and leaves dominance to evenness alone, which the
+geometric mean cushions. The index defined on this page is unchanged. The repairs
+are scored beside it, not swapped in.
+
+**What this does not show.** These are the same synthetic Poisson communities as
+everywhere else on the page; nothing here is field data. In the going-quiet
+scenario each species clumps in its own windows. A community that falls silent
+all at once, in a dry spell or after a disturbance, would move the pooled stream,
+and that case is not simulated, so the pooled term is shown blind to
+unsynchronised clumping only. The clumping axis is also uneven: 30 % of the
+published index's fall (0.729 to 0.507) happens in the first of 19 steps, where
+the per-window weights are switched on, so "half-way" is a position on the axis
+and not half the disturbance. And the three terms sit on different scales (the
+intact forest scores 0.724, 0.837 and 0.920), so only directions and ratios
+compare across columns.
 
 ---
 
@@ -220,9 +294,10 @@ enough to make a depleted forest outscore an intact one.
   classifier for African woodland.
 - **The saw detector is 80 positives.** Enough to show the signal is strong and easy;
   not enough to set an operating threshold for a deployment.
-- **The index is blind to the first eight species lost.** Shown above, not fixed
-  above. Until the stability term stops confusing rarity with burstiness, a falling
-  ABI means something and a flat one does not.
+- **The index is blind to the first eight species lost.** Shown above. Two repairs
+  of the stability term are measured above as well, and the index itself is
+  unchanged. Until the stability term stops confusing rarity with burstiness, a
+  falling ABI means something and a flat one does not.
 - **Contamination is modelled as clean extra "species".** Real leakage is messier and
   probably worse. A classifier confusing rain for an insect chorus will produce
   detections correlated with weather, not the steady independent stream simulated
@@ -241,7 +316,7 @@ Rainforest Connection sets sit behind Kaggle logins. ESC-50 was the only fully o
 source that could be fetched without authorisation, which is why a forest classifier
 was trained on farm animals and Freesound clips.
 
-Training ran on Apple silicon at roughly 190 to 270 seconds per fold, two models per
+Training ran on a laptop GPU at roughly 190 to 270 seconds per fold, two models per
 fold, about 55 minutes for the fifteen runs. The runs were interrupted often enough
 that resumability by (seed, fold) stopped being a nicety and became a requirement.
 Each finished pair is written to disk and skipped on restart.
@@ -254,12 +329,12 @@ rather than redistributed here — the non-commercial term travels with it.
 
 ## Related repositories
 
-- [**cough-spectrograms**](https://github.com/drdmitrymikhaylov/cough-spectrograms) —
+- [**acousticpinn-cough-diagnosis**](https://github.com/drdmitrymikhaylov/acousticpinn-cough-diagnosis) —
   the same mel-spectrogram pipeline and the same way of reporting applied to
   clinical audio.
 - [**making-pinns-work**](https://github.com/drdmitrymikhaylov/making-pinns-work) —
   why physics-informed neural networks fail to converge, measured over seeds.
-- [**oreforge**](https://github.com/drdmitrymikhaylov/oreforge) — a PINN solver inside
+- [**navierpinn-mineral-ore-body-reconstruction**](https://github.com/drdmitrymikhaylov/navierpinn-mineral-ore-body-reconstruction) — a PINN solver inside
   a 3D ore-body modelling application.
 
 ---
