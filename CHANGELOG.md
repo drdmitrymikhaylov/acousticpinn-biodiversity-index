@@ -2,6 +2,10 @@
 
 Dated notes on what changed on this page and why. Newest first.
 
+## 2026-10-19
+
+- LICENSE now holds the standard CC BY 4.0 legal text, so GitHub recognises the licence (it showed "Other" before). The terms are unchanged; the note on what each licence covers moved to `NOTICE.md`.
+
 ## 2026-10-02
 
 - **The two repairs of the stability term, measured** (new README section,
