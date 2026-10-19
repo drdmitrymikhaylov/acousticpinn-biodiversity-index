@@ -1,0 +1,21 @@
+{
+  "upload_type": "software",
+  "title": "AcousticPINN: An Acoustic Biodiversity Index",
+  "description": "An acoustic biodiversity index, written out and tested",
+  "creators": [
+    {
+      "name": "Mikhaylov, Dmitry",
+      "orcid": "0009-0009-2108-6820",
+      "affiliation": "Abu Dhabi Maritime Academy, AD Ports Group"
+    }
+  ],
+  "license": "cc-by-4.0",
+  "keywords": [
+    "acoustic monitoring",
+    "bioacoustics",
+    "biodiversity",
+    "soundscape ecology",
+    "wildlife conservation"
+  ],
+  "access_right": "open"
+}
