@@ -1,5 +1,7 @@
 # Acoustic biodiversity
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23529528.svg)](https://doi.org/10.5281/zenodo.23529528)
+
 **A biodiversity index for soundscapes, written down explicitly and tested against
 communities whose true composition is known.**
 
