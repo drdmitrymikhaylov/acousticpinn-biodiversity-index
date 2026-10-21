@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use this repository, please cite it as below."
 type: software
 title: "AcousticPINN: An Acoustic Biodiversity Index"
+doi: "10.5281/zenodo.23529528"
 abstract: "An acoustic biodiversity index, written out and tested"
 authors:
   - family-names: Mikhaylov
